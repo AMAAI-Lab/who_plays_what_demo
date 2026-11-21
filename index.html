@@ -65,9 +65,12 @@ sup{font-size:.62em;color:var(--accent-ink);margin-left:1px}
 .btn svg{width:16px;height:16px}
 
 /* teaser */
-.teaser{margin:48px auto 0;max-width:960px;border-radius:18px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);position:relative}
+.teaser{margin:48px auto 0;max-width:1080px;border-radius:18px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);background:#fff;padding:clamp(6px,1.2vw,14px)}
 .teaser img{width:100%;height:auto;display:block}
-.teaser figcaption{position:absolute;left:14px;bottom:14px;font:500 12px/1 "JetBrains Mono",monospace;background:rgba(0,0,0,.62);color:#fff;padding:8px 10px;border-radius:8px;backdrop-filter:blur(6px)}
+.fig{margin:28px 0 0;background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:clamp(8px,1.6vw,22px)}
+.fig img{width:100%;height:auto;display:block}
+.fig-cap{color:var(--muted);font-size:14px;margin:14px 0 0}
+.fig-cap a{color:var(--ink)}
 
 /* sections */
 section{padding:72px 0 8px;scroll-margin-top:40px}
@@ -83,21 +86,6 @@ h2{font-family:"Instrument Serif",Georgia,serif;font-weight:400;font-size:clamp(
 .tile .n{font:500 12px/1 "JetBrains Mono",monospace;color:var(--faint)}
 .tile h3{font-size:17px;margin:10px 0 6px;font-weight:600}
 .tile p{margin:0;color:var(--muted);font-size:15px}
-
-/* pipeline */
-.pipe{margin-top:28px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:var(--shadow)}
-.flow-scroll{overflow-x:auto;padding-bottom:4px}
-.flow{display:grid;grid-template-columns:auto 26px 1fr 26px 1fr 26px 1.3fr 26px auto;align-items:center;min-width:860px}
-.col{display:flex;flex-direction:column;gap:10px}
-.node{border:1px solid var(--line);background:var(--card2);border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.35}
-.node small{display:block;color:var(--muted);font-size:12px;margin-top:3px}
-.node.in{border-style:dashed;text-align:center;font:500 13px/1.3 "JetBrains Mono",monospace;color:var(--muted);background:transparent}
-.node.key{border-color:var(--accent);background:var(--accent-soft)}
-.node.out{border-color:var(--accent);background:var(--accent);color:#fff;font-weight:600;text-align:center}
-.node.out small{color:rgba(255,255,255,.85)}
-.arrow{height:1px;background:var(--faint);position:relative;margin:0 4px}
-.arrow::after{content:"";position:absolute;right:-1px;top:-4px;border:4.5px solid transparent;border-left:6px solid var(--faint)}
-.pipe-note{color:var(--muted);font-size:14px;margin:18px 0 0;padding-top:16px;border-top:1px solid var(--line)}
 
 /* results */
 .res{margin-top:28px;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
@@ -215,8 +203,7 @@ footer a{color:var(--muted)}
     </div>
 
     <figure class="teaser">
-      <img src="assets/ex1.jpg" alt="Two violinists on stage; the clicked player is marked with a red box" width="960" height="396">
-      <figcaption>one click &rarr; one player</figcaption>
+      <a href="assets/teaser.png"><img src="assets/teaser.png" width="2400" height="1024" alt="(a) Click a player in a string quartet video and hear only that player: the mixed recording goes in, just violin II comes out. (b) Two violins sound alike, but each player's bow motion lines up with their own notes, so watching tells which notes are whose."></a>
     </figure>
   </div>
 </div>
@@ -239,29 +226,10 @@ footer a{color:var(--muted)}
     <p class="kicker">Method</p>
     <h2>Motion-conditioned separation</h2>
     <p class="lede">Every video token carries its time, so audio and video line up without resampling. After every time transformer in the separator, a cross-attention layer reads the clicked player's video tokens. A complex-mask head gives the player's spectrogram.</p>
-    <div class="pipe">
-      <div class="flow-scroll">
-        <div class="flow">
-          <div class="col">
-            <div class="node in">click</div>
-            <div class="node in">video</div>
-            <div class="node in">recording</div>
-          </div>
-          <div class="arrow"></div>
-          <div class="col"><div class="node">SAM 2.1<small>tracks the clicked player</small></div></div>
-          <div class="arrow"></div>
-          <div class="col">
-            <div class="node">V-JEPA 2 ViT-L<small>frozen crop features · 12.5 / s</small></div>
-            <div class="node">RTMW keypoints<small>48 body + hand velocities · 25 / s</small></div>
-          </div>
-          <div class="arrow"></div>
-          <div class="col"><div class="node key">MVSep Mega BS-RoFormer<small>band split + 12 blocks · cross-attention to the player's video · complex mask</small></div></div>
-          <div class="arrow"></div>
-          <div class="col"><div class="node out">clicked player<small>alone</small></div></div>
-        </div>
-      </div>
-      <p class="pipe-note">Trained only on artificial mixes of solo clips (Solos + MUSIC-21, 26 instruments). The clicked player is mixed with a different instrument, the same instrument from another video, a pitch / tempo-matched one, or <em>the same video at another moment</em> (same person and room, only the timing differs), plus 0–3 other instruments.</p>
-    </div>
+    <figure class="fig">
+      <a href="assets/method.png"><img src="assets/method.png" width="2400" height="1536" loading="lazy" alt="Method overview: the clicked player is tracked by SAM 2.1; frozen V-JEPA 2 video features and RTMW motion features (48 keypoints) form tokens on a shared 10 ms grid; the BS-RoFormer separator (x12, initialised from MVSep Mega) cross-attends from the audio band-split features to these tokens; a mask head and iSTFT give the clicked player's sound. Training mixtures pair the player with a different instrument, the same instrument, a pitch and tempo matched one, or the same performer at another time, plus up to 3 other instruments and mirroring. Inference uses 4 s windows with 50% overlap."></a>
+    </figure>
+    <p class="fig-cap">Trained only on artificial mixes of solo clips (Solos + MUSIC-21, 26 instruments). <a href="assets/method.png">Open full size</a>.</p>
   </div>
 </section>
 
